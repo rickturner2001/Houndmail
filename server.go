@@ -13,22 +13,26 @@ import (
 type APIServer struct {
 	ListenAddr string
 	Client     *http.Client
+	Store      *MySqlStore
 }
 
-func NewAPIServer(listenAddr string) *APIServer {
+func NewAPIServer(store *MySqlStore, listenAddr string) *APIServer {
 	return &APIServer{
 		ListenAddr: listenAddr,
 		Client: &http.Client{
 			Timeout: 5 * time.Second,
 		},
+		Store: store,
 	}
 }
 
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", MakeHttpFunc(s.HandleRootRoute)).Methods(http.MethodGet)
+	router.HandleFunc("/protected", WithAuth(MakeHttpFunc(s.HandleRootRoute), s.Store))
 	router.HandleFunc("/provider/{provider}", MakeHttpFunc(s.HandleProviderRoute)).Methods(http.MethodGet)
-
+	router.HandleFunc("/user/register", MakeHttpFunc(s.HandlerUserRegistration)).Methods(http.MethodPost)
+	router.HandleFunc("/user/validate", MakeHttpFunc(s.HandleUserLogin)).Methods(http.MethodPost)
 	log.Printf("API running on address: %s", s.ListenAddr)
 
 	err := http.ListenAndServe(s.ListenAddr, router)
@@ -37,11 +41,12 @@ func (s *APIServer) Run() {
 	}
 }
 
-type apiFunc func(http.ResponseWriter, *http.Request) error
-
-type ApiError struct {
-	Error string `json:"error"`
-}
+type (
+	apiFunc  func(http.ResponseWriter, *http.Request) error
+	ApiError struct {
+		Error string `json:"error"`
+	}
+)
 
 func MakeHttpFunc(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

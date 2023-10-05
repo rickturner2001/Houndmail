@@ -1,0 +1,21 @@
+services:
+  db:
+    container_name: mysql-terronify-dev
+    image: mysql
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    environment:
+      # NOTE: fine for development purposes
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: development
+      MYSQL_USER: admin
+    ports:
+      - 3306:3306
+
+  adminer:
+    container_name: adminer-terronify-dev
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

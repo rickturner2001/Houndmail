@@ -31,7 +31,6 @@ func (p *Provider) HandleResponse(c *http.Client) {
 // TODO: clean this up
 func instagramInternalHandler(c *http.Client) (bool, error) {
 	reqUrl := "https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/"
-
 	data := url.Values{}
 
 	data.Set("email", "someemail@gmail.com")
@@ -72,11 +71,13 @@ func instagramInternalHandler(c *http.Client) (bool, error) {
 	req.Header.Add("X-Csrftoken", token)
 	req.Header.Add("Referer", "https://www.instagram.com/accounts/emailsignup/")
 
-	res, err := c.Do(req)
+	_, err = c.Do(req)
+
 	if err != nil {
 		err = utils.LogAndError(fmt.Sprintf("Could not send request to instagram: %s", err))
 		return false, err
 	}
+	return true, nil
 }
 
 func GetProviderByName(name string) (*Provider, error) {

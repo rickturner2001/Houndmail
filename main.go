@@ -1,8 +1,11 @@
 package main
 
-const listenAddr = "127.0.0.1:8080"
+const listenAddr = "127.0.0.1:3000"
 
 func main() {
-	srv := NewAPIServer(listenAddr)
+	store := NewMySqlStore()
+	store.Init()
+
+	srv := NewAPIServer(store, listenAddr)
 	srv.Run()
 }
